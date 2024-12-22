@@ -1,0 +1,141 @@
+Traceback (most recent call last):
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/jupyter_cache/executors/utils.py", line 58, in single_nb_execution
+    executenb(
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/nbclient/client.py", line 1319, in execute
+    return NotebookClient(nb=nb, resources=resources, km=km, **kwargs).execute()
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/tejas/Library/Python/3.12/lib/python/site-packages/jupyter_core/utils/__init__.py", line 165, in wrapped
+    return loop.run_until_complete(inner)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/asyncio/base_events.py", line 687, in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/nbclient/client.py", line 709, in async_execute
+    await self.async_execute_cell(
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/nbclient/client.py", line 1062, in async_execute_cell
+    await self._check_raise_for_error(cell, cell_index, exec_reply)
+  File "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/nbclient/client.py", line 918, in _check_raise_for_error
+    raise CellExecutionError.from_cell_and_msg(cell, exec_reply_content)
+nbclient.exceptions.CellExecutionError: An error occurred while executing the following cell:
+------------------
+import sqlite3
+import pandas as pd
+
+def fetch_data_to_dataframe():
+    # Connect to the SQLite database
+    conn = sqlite3.connect("life_expectancy.db")
+    
+    # SQL query without explicit casting
+    query = """
+        SELECT 
+            c.CountryName AS Country, 
+            c.Status AS Status, 
+            y.Year AS Year, 
+            y.LifeExpectancy AS LifeExpectancy, 
+            y.AdultMortality AS AdultMortality, 
+            y.InfantDeaths AS InfantDeaths, 
+            y.Alcohol AS AlcoholConsumption
+        FROM 
+            YearlyData y
+        JOIN 
+            Country c ON y.CountryID = c.CountryID;
+    """
+    
+    # Execute query and load into Pandas DataFrame
+    df = pd.read_sql_query(query, conn)
+    
+    conn.close()
+    
+    # Convert columns to appropriate data types
+    df['Year'] = df['Year'].astype(int)
+    df['LifeExpectancy'] = pd.to_numeric(df['LifeExpectancy'], errors='coerce')
+    df['AdultMortality'] = pd.to_numeric(df['AdultMortality'], errors='coerce', downcast='integer')
+    df['InfantDeaths'] = pd.to_numeric(df['InfantDeaths'], errors='coerce', downcast='integer')
+    df['AlcoholConsumption'] = pd.to_numeric(df['AlcoholConsumption'], errors='coerce')
+    
+    return df
+
+# Fetch data and display the DataFrame
+df = fetch_data_to_dataframe()
+print(df.dtypes)  # Verify column data types
+print(df.head())
+
+------------------
+
+
+[0;31m---------------------------------------------------------------------------[0m
+[0;31mOperationalError[0m                          Traceback (most recent call last)
+File [0;32m/opt/anaconda3/lib/python3.12/site-packages/pandas/io/sql.py:2674[0m, in [0;36mSQLiteDatabase.execute[0;34m(self, sql, params)[0m
+[1;32m   2673[0m [38;5;28;01mtry[39;00m:
+[0;32m-> 2674[0m     cur[38;5;241m.[39mexecute(sql, [38;5;241m*[39margs)
+[1;32m   2675[0m     [38;5;28;01mreturn[39;00m cur
+
+[0;31mOperationalError[0m: no such table: YearlyData
+
+The above exception was the direct cause of the following exception:
+
+[0;31mDatabaseError[0m                             Traceback (most recent call last)
+Cell [0;32mIn[2], line 39[0m
+[1;32m     36[0m     [38;5;28;01mreturn[39;00m df
+[1;32m     38[0m [38;5;66;03m# Fetch data and display the DataFrame[39;00m
+[0;32m---> 39[0m df [38;5;241m=[39m fetch_data_to_dataframe()
+[1;32m     40[0m [38;5;28mprint[39m(df[38;5;241m.[39mdtypes)  [38;5;66;03m# Verify column data types[39;00m
+[1;32m     41[0m [38;5;28mprint[39m(df[38;5;241m.[39mhead())
+
+Cell [0;32mIn[2], line 25[0m, in [0;36mfetch_data_to_dataframe[0;34m()[0m
+[1;32m      9[0m query [38;5;241m=[39m [38;5;124m"""[39m
+[1;32m     10[0m [38;5;124m    SELECT [39m
+[1;32m     11[0m [38;5;124m        c.CountryName AS Country, [39m
+[0;32m   (...)[0m
+[1;32m     21[0m [38;5;124m        Country c ON y.CountryID = c.CountryID;[39m
+[1;32m     22[0m [38;5;124m[39m[38;5;124m"""[39m
+[1;32m     24[0m [38;5;66;03m# Execute query and load into Pandas DataFrame[39;00m
+[0;32m---> 25[0m df [38;5;241m=[39m pd[38;5;241m.[39mread_sql_query(query, conn)
+[1;32m     27[0m conn[38;5;241m.[39mclose()
+[1;32m     29[0m [38;5;66;03m# Convert columns to appropriate data types[39;00m
+
+File [0;32m/opt/anaconda3/lib/python3.12/site-packages/pandas/io/sql.py:526[0m, in [0;36mread_sql_query[0;34m(sql, con, index_col, coerce_float, params, parse_dates, chunksize, dtype, dtype_backend)[0m
+[1;32m    523[0m [38;5;28;01massert[39;00m dtype_backend [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m lib[38;5;241m.[39mno_default
+[1;32m    525[0m [38;5;28;01mwith[39;00m pandasSQL_builder(con) [38;5;28;01mas[39;00m pandas_sql:
+[0;32m--> 526[0m     [38;5;28;01mreturn[39;00m pandas_sql[38;5;241m.[39mread_query(
+[1;32m    527[0m         sql,
+[1;32m    528[0m         index_col[38;5;241m=[39mindex_col,
+[1;32m    529[0m         params[38;5;241m=[39mparams,
+[1;32m    530[0m         coerce_float[38;5;241m=[39mcoerce_float,
+[1;32m    531[0m         parse_dates[38;5;241m=[39mparse_dates,
+[1;32m    532[0m         chunksize[38;5;241m=[39mchunksize,
+[1;32m    533[0m         dtype[38;5;241m=[39mdtype,
+[1;32m    534[0m         dtype_backend[38;5;241m=[39mdtype_backend,
+[1;32m    535[0m     )
+
+File [0;32m/opt/anaconda3/lib/python3.12/site-packages/pandas/io/sql.py:2738[0m, in [0;36mSQLiteDatabase.read_query[0;34m(self, sql, index_col, coerce_float, parse_dates, params, chunksize, dtype, dtype_backend)[0m
+[1;32m   2727[0m [38;5;28;01mdef[39;00m [38;5;21mread_query[39m(
+[1;32m   2728[0m     [38;5;28mself[39m,
+[1;32m   2729[0m     sql,
+[0;32m   (...)[0m
+[1;32m   2736[0m     dtype_backend: DtypeBackend [38;5;241m|[39m Literal[[38;5;124m"[39m[38;5;124mnumpy[39m[38;5;124m"[39m] [38;5;241m=[39m [38;5;124m"[39m[38;5;124mnumpy[39m[38;5;124m"[39m,
+[1;32m   2737[0m ) [38;5;241m-[39m[38;5;241m>[39m DataFrame [38;5;241m|[39m Iterator[DataFrame]:
+[0;32m-> 2738[0m     cursor [38;5;241m=[39m [38;5;28mself[39m[38;5;241m.[39mexecute(sql, params)
+[1;32m   2739[0m     columns [38;5;241m=[39m [col_desc[[38;5;241m0[39m] [38;5;28;01mfor[39;00m col_desc [38;5;129;01min[39;00m cursor[38;5;241m.[39mdescription]
+[1;32m   2741[0m     [38;5;28;01mif[39;00m chunksize [38;5;129;01mis[39;00m [38;5;129;01mnot[39;00m [38;5;28;01mNone[39;00m:
+
+File [0;32m/opt/anaconda3/lib/python3.12/site-packages/pandas/io/sql.py:2686[0m, in [0;36mSQLiteDatabase.execute[0;34m(self, sql, params)[0m
+[1;32m   2683[0m     [38;5;28;01mraise[39;00m ex [38;5;28;01mfrom[39;00m [38;5;21;01minner_exc[39;00m
+[1;32m   2685[0m ex [38;5;241m=[39m DatabaseError([38;5;124mf[39m[38;5;124m"[39m[38;5;124mExecution failed on sql [39m[38;5;124m'[39m[38;5;132;01m{[39;00msql[38;5;132;01m}[39;00m[38;5;124m'[39m[38;5;124m: [39m[38;5;132;01m{[39;00mexc[38;5;132;01m}[39;00m[38;5;124m"[39m)
+[0;32m-> 2686[0m [38;5;28;01mraise[39;00m ex [38;5;28;01mfrom[39;00m [38;5;21;01mexc[39;00m
+
+[0;31mDatabaseError[0m: Execution failed on sql '
+        SELECT 
+            c.CountryName AS Country, 
+            c.Status AS Status, 
+            y.Year AS Year, 
+            y.LifeExpectancy AS LifeExpectancy, 
+            y.AdultMortality AS AdultMortality, 
+            y.InfantDeaths AS InfantDeaths, 
+            y.Alcohol AS AlcoholConsumption
+        FROM 
+            YearlyData y
+        JOIN 
+            Country c ON y.CountryID = c.CountryID;
+    ': no such table: YearlyData
+
